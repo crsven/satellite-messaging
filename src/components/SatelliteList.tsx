@@ -10,11 +10,10 @@ import {
 const ALLOWLIST_CHARACTERS = [" ", ".", ",", "-", "?", "!", "/", "(", ")"];
 
 const SatelliteList = (): JSX.Element => {
-  const satellites = useContext(VisibleSatellitesContext);
+  const { isLoading, satellites } = useContext(VisibleSatellitesContext);
 
   const [allLetters, setAllLetters] = useState<string[]>([]);
   const [message, setMessage] = useState<string>("");
-  const [remainingLetters, setRemainingLetters] = useState<string[]>([]);
 
   useEffect(() => {
     const newLetters = satellites.reduce<string[]>(
@@ -26,16 +25,13 @@ const SatelliteList = (): JSX.Element => {
     );
 
     setAllLetters(newLetters);
-    setRemainingLetters(newLetters);
   }, [satellites]);
 
   const updateMessage = useCallback(
     ({ target }: ChangeEvent<HTMLInputElement>) => {
-      console.log("updating message with:", target.value);
-      console.log("remainingLetters: ", remainingLetters);
-      const [allowedLetters, leftoverLetters] = Array.from(target.value).reduce<
-        [string[], string[]]
-      >(
+      const [allowedLetters, _leftoverLetters] = Array.from(
+        target.value
+      ).reduce<[string[], string[]]>(
         ([allowedCharacters, availableLetters], character) => {
           const indexOfUpperChar = availableLetters.indexOf(
             character.toUpperCase()
@@ -58,20 +54,19 @@ const SatelliteList = (): JSX.Element => {
       );
 
       const allowedMessage = allowedLetters.join("");
-      console.log("allowedMessage: ", allowedMessage);
       setMessage(allowedMessage);
-      console.log("leftoverLetters: ", leftoverLetters);
-      setRemainingLetters(leftoverLetters);
     },
     [allLetters]
   );
 
   return (
     <>
-      <p>Satellites above you...</p>
+      {isLoading ? <p>Loading satellites...</p> : <p>Satellites above you:</p>}
       <ul>
-        {satellites.map((satellite) => (
-          <li key={satellite.name}>{satellite.name}</li>
+        {satellites.map(({ id, distanceKm, name }) => (
+          <li key={id}>
+            {id}: {name} ({distanceKm.toFixed(2)} km away)
+          </li>
         ))}
       </ul>
       <label htmlFor="message">What is your message?</label>
